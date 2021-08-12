@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Elevator
 {
@@ -13,7 +10,15 @@ namespace Elevator
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            var _host = CreateHostBuilder(args).Build();
+
+            var _cache = _host.Services.GetRequiredService<IMemoryCache>();
+
+            _cache.Set<Elevator>("myElevator", new Elevator() { SelectedFloorQueue = new Queue<int>() });
+
+            _host.Services.GetService<UpdateElevatorState>().StartAsync(new System.Threading.CancellationToken());
+
+            _host.Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
